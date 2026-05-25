@@ -1,0 +1,1 @@
+public record ReserveTicketsResponse(int TicketId, string Message);
