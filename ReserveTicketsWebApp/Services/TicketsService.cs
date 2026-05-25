@@ -22,9 +22,17 @@ public class TicketsService(AppDbContext appDbContext) : ITicketsService
             ticket.Cancel();
         }
 
+        var eventRecords = await appDbContext.Events
+            .Where(e => ticketsToRelease.Keys.Contains(e.Id))
+            .ToDictionaryAsync(e => e.Id, e => e);
+
         foreach (var kvp in ticketsToRelease)
         {
-            var eventRecord = await appDbContext.Events.FindAsync(kvp.Key);
+            var eventRecord = eventRecords.GetValueOrDefault(kvp.Key);
+            if (eventRecord is null)
+            {
+                throw new NotFoundException(nameof(Event), kvp.Key);
+            }
 
             eventRecord?.ReleaseSeats(kvp.Value);
         }
